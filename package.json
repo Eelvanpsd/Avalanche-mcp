@@ -1,6 +1,6 @@
 {
   "name": "avalanche-mcp-server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MCP server that gives developers and AI agents a complete guide to building on Avalanche: docs search, live C/P/X-Chain data, L1 launch & ICM workflows.",
   "type": "module",
   "bin": {
@@ -10,7 +10,8 @@
   "files": [
     "dist",
     "README.md",
-    "public"
+    "public",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsc && npm run copy-data",

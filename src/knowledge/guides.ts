@@ -212,7 +212,7 @@ Docs: content/docs/cross-chain, content/academy/avalanche-l1 (interchain messagi
 | ICM message never arrives | No relayer for that route | \`avalanche interchain relayer deploy\` / check config includes both chains + funded key |
 | \`execution reverted\` on precompile call | Caller lacks Admin/Manager/Enabled | \`readAllowList(addr)\` on the precompile; have admin \`setEnabled\` |
 | Foundry: \`EvmError: NotActivated\` / PUSH0 | L1 built with old Subnet-EVM (pre-Durango) | \`--evm-version paris\` in foundry.toml or upgrade VM |
-| Data API 429 | Rate limit | Set GLACIER_API_KEY |
+| Data API 429 | Rate limit | Set AVAX_DATA_API_KEY |
 | \`eth_getLogs\` range too large | Public RPC caps ~2048 blocks | Chunk ranges; or use avax_data_list_transactions |
 
 Public RPC limits: api.avax.network is rate-limited & not for production indexing – run your own node (\`avalanche node create\`) or use a provider.`,

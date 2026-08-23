@@ -1,108 +1,156 @@
 <p align="center">
-  <img src="public/avalanche-mcp-logo.svg" alt="Avalanche MCP" width="520">
+  <a href="https://avalanche-mcp.dev"><img src="https://raw.githubusercontent.com/Eelvanpsd/Avalanche-mcp/main/public/avalanche-mcp-logo.svg" alt="Avalanche MCP" width="420"></a>
 </p>
 
-<h1 align="center">avalanche-mcp-server</h1>
+<h1 align="center">Avalanche MCP</h1>
 
-An MCP (Model Context Protocol) server that turns any AI agent or IDE (Claude Code, Claude Desktop, Cursor, Windsurf…) into an **Avalanche development guide**: searchable official docs, live C-Chain / P-Chain / X-Chain / Data API access, and opinionated workflows for launching L1s, configuring precompiles, and building ICM/Teleporter cross-chain apps.
+<p align="center">
+  Avalanche, explained to your AI agent.<br>
+  A Model Context Protocol server that gives Claude Code, Cursor, Claude Desktop and any MCP client the whole Avalanche stack — docs, ACPs, live chain data and L1 / ICM workflows.
+</p>
 
-## What's inside
+<p align="center">
+  <a href="https://www.npmjs.com/package/avalanche-mcp-server"><img alt="npm" src="https://img.shields.io/npm/v/avalanche-mcp-server?color=E84142&label=npm"></a>
+  <a href="https://avalanche-mcp.dev"><img alt="hosted endpoint" src="https://img.shields.io/badge/hosted-avalanche--mcp.dev%2Fmcp-E84142"></a>
+  <a href="https://modelcontextprotocol.io"><img alt="MCP" src="https://img.shields.io/badge/protocol-MCP-black"></a>
+  <a href="LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-black"></a>
+</p>
 
-| Layer | Tools / resources |
-|---|---|
-| **Knowledge** (offline, bundled index — ~9.9k chunks — of build.avax.network docs, Academy, 234 integrations, blog, all 36 ACPs, AvalancheGo/Subnet-EVM, ICM services, Avalanche CLI, starter kit) | `avax_search_docs`, `avax_get_doc`, `avax_list_docs`, `avax_list_topics`, `avax_get_guide`, `avax_search_integrations`, `avax://docs/{path}`, `avax://guides/{name}` |
-| **ACPs & ecosystem** | `avax_acp_list`, `avax_acp_lookup` (structured status/track/authors, offline), `avax_acp_votes` (live `info.acps` signaling), `avax_console_flows` (Builder Console deep links + platform-cli commands), `avax_fetch_live_doc` (always-current `.md` endpoint) |
-| **Hosted MCP federation** | `avax_hosted_list_tools`, `avax_hosted_call`, `avax_hosted_read_index` — proxy to Ava Labs' official MCP (`https://build.avax.network/api/mcp`) for `build_plan` runbooks, `cli_lookup_command`, `rpc_lookup_method`, always-fresh `docs_search`; 60 req/min, automatic actionable 429 errors |
-| **Workflows** | `avax_plan_l1_launch`, `avax_generate_genesis`, `avax_explain_precompile`, `avax_icm_recipe`, `avax_troubleshoot` |
-| **Live EVM** (C-Chain, Fuji, known L1s, any RPC URL) | `avax_list_networks`, `avax_get_chain_status`, `avax_get_balance`, `avax_get_block`, `avax_get_transaction`, `avax_get_code`, `avax_call_contract`, `avax_estimate_gas` |
-| **P-Chain / X-Chain / info** | `avax_pchain_get_validators`, `avax_pchain_get_subnet`, `avax_pchain_list_blockchains`, `avax_pchain_get_stake_info`, `avax_pchain_get_tx_status`, `avax_pchain_get_balance`, `avax_xchain_get_balance`, `avax_node_info` |
-| **Avalanche Data API (Glacier)** | `avax_data_list_chains`, `avax_data_list_erc20_balances`, `avax_data_list_transactions`, `avax_data_get_token_metadata`, `avax_data_list_l1_validators` |
-| **Prompts** | `avalanche_launch_l1`, `avalanche_deploy_contract`, `avalanche_icm_bridge`, `avalanche_learn` |
+---
 
-All tools are **read-only**. Nothing signs or broadcasts transactions.
+## Install
 
-## Quick start
-
-Installed exactly like Ava Labs' hosted MCP — a public Streamable HTTP endpoint, no key, no install:
+**Hosted — nothing to install.** Same shape as Ava Labs' `build.avax.network/api/mcp`: a public Streamable HTTP endpoint, no API key.
 
 ```bash
 claude mcp add avalanche --transport http https://avalanche-mcp.dev/mcp
 ```
 
-| Client | How |
+| Client | Configuration |
 |---|---|
-| **Claude Code** | command above, or in `.mcp.json`: `{ "mcpServers": { "avalanche": { "type": "http", "url": "https://avalanche-mcp.dev/mcp" } } }` |
-| **Claude Desktop** | stdio bridge: `{ "command": "npx", "args": ["-y", "mcp-remote", "https://avalanche-mcp.dev/mcp"] }` in `claude_desktop_config.json` |
+| **Claude Code** | Command above, or commit `.mcp.json`: `{ "mcpServers": { "avalanche": { "type": "http", "url": "https://avalanche-mcp.dev/mcp" } } }` |
 | **Cursor / Windsurf** | `{ "mcpServers": { "avalanche": { "url": "https://avalanche-mcp.dev/mcp" } } }` |
-| **Local / offline** | `claude mcp add avalanche -- npx -y avalanche-mcp-server` — [npm](https://www.npmjs.com/package/avalanche-mcp-server); or from source below |
-| **Anything** | plain JSON-RPC: `curl -X POST https://avalanche-mcp.dev/mcp -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'` |
+| **Claude Desktop** | `{ "mcpServers": { "avalanche": { "command": "npx", "args": ["-y", "mcp-remote", "https://avalanche-mcp.dev/mcp"] } } }` |
+| **Local / offline** | `claude mcp add avalanche -- npx -y avalanche-mcp-server` — runs on your machine over stdio, no rate limits |
+| **Any HTTP client** | `curl -X POST https://avalanche-mcp.dev/mcp -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'` |
 
-### From source
+Run `/mcp` in Claude Code to verify — you should see **avalanche · 41 tools**.
 
-```bash
-git clone https://github.com/Eelvanpsd/Avalanche-mcp.git && cd Avalanche-mcp
-npm install && npm run build          # index ships in the repo; `npm run build-index` refreshes it
-claude mcp add avalanche -- node "$PWD/dist/index.js"
-npm run inspect                       # MCP Inspector UI
+## What it does
+
+Ask in plain language; the agent picks the tools and cites its sources.
+
+```
+› What changes in the Helicon upgrade for my C-Chain indexer?
+
+⏺ avax_upgrade_lookup(query: "Helicon")
+⏺ avax_acp_lookup(query: "ACP-194")
+⏺ avax_get_doc(content/docs/primary-network/helicon-upgrade.mdx)
+
+Helicon (AvalancheGo v1.15.0-fuji) is live on Fuji since 2026-07-28; mainnet is not
+scheduled yet. ACP-194 Continuous Execution decouples consensus from execution, so a
+block's state root settles after a τ delay (~5 s) — don't treat "latest" as executed
+state. ACP-283 makes the minimum gas price dynamic, so never hardcode a fee floor.
+
+Sources: build.avax.network/docs/primary-network/helicon-upgrade
+         build.avax.network/docs/acps/194-continuous-execution
 ```
 
-### Self-host the HTTP endpoint
+Other things to ask on day one:
+
+- *"Plan a permissioned enterprise L1 on Fuji with five validators, then generate the genesis."*
+- *"Explain the NativeMinter precompile and how to enable it after launch with upgrade.json."*
+- *"Send a message from Fuji C-Chain to Dispatch with Teleporter, with relayer setup."*
+- *"Which ACPs are activated, and what does ACP-176 change about gas?"*
+- *"My CLI says `subnet not tracked` when I hit the RPC. What's wrong?"*
+
+## Capabilities
+
+**41 tools, every one read-only.** Nothing signs or broadcasts transactions.
+
+| Area | Tools | What you get |
+|---|---|---|
+| **Knowledge** | 7 | Full-text search over a bundled index of build.avax.network (docs, Academy, 234 integrations, blog), Subnet-EVM precompile docs, ICM contracts, Avalanche CLI reference — 9.9k chunks, every hit with its source URL. Curated guides for architecture, L1 launch, precompiles, ICM, gas and troubleshooting. |
+| **Protocol & upgrades** | 4 | All 36 ACPs with structured status / track / authors; the Banff → Helicon upgrade timeline with dates, versions and developer impact; live ACP signaling from nodes. |
+| **Workflows** | 6 | Tailored L1 launch plans, valid `genesis.json` with the right precompiles, Teleporter sender/receiver recipes with real addresses, error triage, Builder Console deep links and platform-cli commands. |
+| **Live EVM** | 8 | C-Chain, Fuji, known L1s or any RPC URL: balances, blocks, receipts, `eth_call`, gas estimation. |
+| **P-Chain · X-Chain · node** | 8 | Validators, subnets and L1s, staking economics, tx status, UTXO balances, node and network info. |
+| **Avalanche Data API** | 5 | Indexed chains, ERC-20 balances, transaction history, token metadata, L1 validators. |
+| **Hosted federation** | 3 | Proxy to Ava Labs' official MCP for `build_plan` runbooks, CLI / RPC lookup and always-fresh search. |
+
+Plus MCP **resources** (`avax://docs/{path}`, `avax://guides/{name}`, `avax://networks`) and **prompts** (`avalanche_launch_l1`, `avalanche_deploy_contract`, `avalanche_icm_bridge`, `avalanche_learn`). The full tool list is at [avalanche-mcp.dev/#tools](https://avalanche-mcp.dev/#tools) or via `tools/list`.
+
+### Verified, not guessed
+
+Facts that models commonly get wrong are pinned in code and checked against the docs: the C-Chain minimum base fee is **1 wei** since Fortuna (ACP-176), not 25 nAVAX; `subnet-evm` and `icm-contracts` now live in `avalanchego/graft` and `icm-services`; Helicon is Fuji-only as of August 2026. Every answer carries the build.avax.network or GitHub URL it came from.
+
+## Knowledge sources
+
+The index is built by `npm run build-index` from official repositories and ships inside the package, so the first search works offline:
+
+| Source | Content |
+|---|---|
+| `ava-labs/builders-hub` | docs, Academy (L1 and blockchain tracks), integrations, blog |
+| `avalanche-foundation/ACPs` | every ACP README, parsed into structured metadata |
+| `ava-labs/avalanchego` | README, `docs/`, `RELEASES`, `graft/subnet-evm` precompile and plugin docs |
+| `ava-labs/icm-services` | Teleporter / ICTT contracts, relayer, signature aggregator |
+| `ava-labs/avalanche-cli`, `ava-labs/avalanche-starter-kit` | command reference, templates |
+
+`avax_list_topics` reports the index build date so the agent knows how fresh it is; `avax_fetch_live_doc` fetches the current version of any page when that matters. Credential-shaped strings in documentation examples are redacted at build time.
+
+## Configuration
+
+No configuration is required. Optional environment variables (local mode):
+
+| Variable | Purpose |
+|---|---|
+| `AVAX_DATA_API_KEY` | Higher rate limits for the Avalanche Data API tools. Free key at [build.avax.network](https://build.avax.network). (`GLACIER_API_KEY` is accepted as a legacy alias.) |
+| `AVAX_DATA_API_URL` | Override the Data API base URL |
+| `AVAX_HOSTED_MCP_URL` | Override the hosted Avalanche MCP endpoint used by `avax_hosted_*` |
+
+## Self-hosting
+
+Run the HTTP transport anywhere Node runs:
 
 ```bash
-PORT=3333 node dist/index.js --http   # POST http://localhost:3333/mcp (stateless JSON, CORS open)
+npx -y avalanche-mcp-server --http        # POST http://localhost:3333/mcp  (PORT to change)
 ```
 
-Or mount it in any web-standard runtime (Next.js route handler, Workers, Hono):
+Or mount it in any web-standard runtime — Next.js route handlers, Cloudflare Workers, Hono:
 
 ```ts
 import { handleMcpRequest } from "avalanche-mcp-server";
 export const POST = (req: Request) => handleMcpRequest(req);
 ```
 
-This is how avalanche-mcp.dev serves it ([avalanche-mcp-web](https://github.com/Eelvanpsd/avalanche-mcp-web)).
+This is exactly how [avalanche-mcp.dev](https://avalanche-mcp.dev) serves it ([source](https://github.com/Eelvanpsd/avalanche-mcp-web)). Responses are stateless JSON with CORS open, so browser-based clients work too.
 
-## Environment
+## Works with the official Avalanche MCPs
 
-| Var | Purpose |
-|---|---|
-| `GLACIER_API_KEY` | Optional. Higher rate limits for `avax_data_*` tools. Free key at https://build.avax.network |
-| `GLACIER_BASE_URL` | Override Data API base (default `https://glacier-api.avax.network/v1`) |
-| `AVAX_HOSTED_MCP_URL` | Override the hosted Avalanche MCP endpoint (default `https://build.avax.network/api/mcp`) |
-
-## Works alongside the official Avalanche MCPs
-
-This server is **offline-first and workflow-rich**; Ava Labs' hosted MCP is always-current and covers Builder Hub search, CLI/RPC lookup and runbooks. Use both:
+Ava Labs' hosted MCP is always current for Builder Hub search, CLI / RPC lookup and runbooks; this server adds offline knowledge, structured ACPs and upgrades, live EVM tools and end-to-end workflows. They compose:
 
 ```bash
-claude mcp add avalanche -- node /ABSOLUTE/PATH/avalanche-dev-mcp/dist/index.js
-claude mcp add avalanche-hosted --transport http https://build.avax.network/api/mcp
+claude mcp add avalanche          --transport http https://avalanche-mcp.dev/mcp
+claude mcp add avalanche-hosted   --transport http https://build.avax.network/api/mcp
 claude mcp add avalanche-chainkit -- npx -y @avalanche-sdk/chainkit mcp-server
 claude mcp add avalanche-avacloud -- npx -y @avalabs/avacloud-sdk mcp-server --apikey $AVACLOUD_API_KEY
 ```
 
-`avax_hosted_call` already proxies the hosted server from inside this one, so a single registration is enough for most setups.
-
-## Keeping docs fresh
-
-`npm run build-index` pulls tarballs from:
-- `ava-labs/builders-hub` (`content/docs`, `content/academy/{avalanche-l1,blockchain}`, `content/integrations`, `content/blog`)
-- `avalanche-foundation/ACPs` (every ACP README, parsed into structured metadata)
-- `ava-labs/avalanchego` (README, `docs/`, `graft/subnet-evm` READMEs & precompile docs)
-- `ava-labs/icm-services`, `ava-labs/avalanche-cli`, `ava-labs/avalanche-starter-kit`
-
-Use `REFRESH=1 npm run build-index` to re-download. A weekly CI job that rebuilds and republishes is recommended — stale docs are the main risk for an agent guide.
-
-## Adding knowledge
-- Curated guides: `src/knowledge/guides.ts` (architecture, launch-l1, precompiles, icm, gas-and-fees, troubleshooting).
-- Network registry (chain IDs, RPCs, L1s): `src/config/networks.ts`.
-- New sources: add to `SOURCES` in `scripts/build-index.ts`.
+`avax_hosted_call` already proxies the hosted server from inside this one, so a single registration covers most setups.
 
 ## Development
+
 ```bash
-npm run dev            # tsx src/index.ts (stdio)
-npx tsx scripts/smoke.ts   # end-to-end check of tools over stdio
-npm run typecheck
+git clone https://github.com/Eelvanpsd/Avalanche-mcp.git && cd Avalanche-mcp
+npm install && npm run build       # the index ships in the repo
+npm run dev                        # stdio server via tsx
+npm run inspect                    # MCP Inspector UI
+npx tsx scripts/smoke.ts           # end-to-end tool check over stdio
+REFRESH=1 npm run build-index      # re-download sources and rebuild the index
 ```
 
+Extending it is one file each: curated guides in `src/knowledge/guides.ts`, the network registry in `src/config/networks.ts`, upgrade timeline in `src/knowledge/upgrades.ts`, new sources in `scripts/build-index.ts`.
+
 ## License
-MIT
+
+MIT. Avalanche MCP is an independent, community-built project and is not affiliated with or endorsed by Ava Labs or the Avalanche Foundation. Avalanche and the Avalanche mark are trademarks of their respective owners.
