@@ -1,0 +1,42 @@
+<evaluation>
+  <qa_pair>
+    <question>What is the address of the NativeMinter precompile on Subnet-EVM chains?</question>
+    <answer>0x0200000000000000000000000000000000000001</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Which genesis config key activates the Warp precompile, and what is the default quorumNumerator? Answer as "key, number".</question>
+    <answer>warpConfig, 67</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>What is the TeleporterMessenger contract address (same on every Avalanche chain)?</question>
+    <answer>0x253b2784c75e510dD0fF1da844684a1aC0aa5fcf</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>What is the EVM chain ID of the Avalanche Fuji C-Chain?</question>
+    <answer>43113</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>What is the blockchain ID of the P-Chain on Avalanche (as returned by info.getBlockchainID)?</question>
+    <answer>11111111111111111111111111111111LpoYY</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Which precompile checks tx.origin instead of msg.sender so that factory contracts still work for allow-listed senders?</question>
+    <answer>ContractDeployerAllowList</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Since the Fortuna upgrade (ACP-176), what is the minimum base fee on the C-Chain?</question>
+    <answer>1 wei</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>What is the TeleporterRegistry address on the Fuji C-Chain?</question>
+    <answer>0xF86Cb19Ad8405AEFa7d09C778215D2Cb6eBfB228</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>In the AllowList precompile interface, which numeric role value does readAllowList return for an Admin?</question>
+    <answer>2</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>What symbol does the contract at 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7 on Avalanche mainnet C-Chain return from symbol()?</question>
+    <answer>WAVAX</answer>
+  </qa_pair>
+</evaluation>

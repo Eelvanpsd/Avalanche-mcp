@@ -1,0 +1,49 @@
+{
+  "name": "avalanche-mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server that gives developers and AI agents a complete guide to building on Avalanche: docs search, live C/P/X-Chain data, L1 launch & ICM workflows.",
+  "type": "module",
+  "bin": {
+    "avalanche-mcp": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "public"
+  ],
+  "scripts": {
+    "build": "tsc && npm run copy-data",
+    "copy-data": "mkdir -p dist/knowledge/data && cp -R src/knowledge/data/. dist/knowledge/data/",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "build-index": "tsx scripts/build-index.ts",
+    "inspect": "npx @modelcontextprotocol/inspector node dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "mcp",
+    "avalanche",
+    "avax",
+    "subnet",
+    "l1",
+    "icm",
+    "teleporter",
+    "web3"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "minisearch": "^7.2.0",
+    "viem": "^2.55.19",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.3"
+  }
+}
