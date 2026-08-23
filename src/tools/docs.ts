@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { searchDocs, getDoc, listDocs, listTopics, knowledgeStats } from "../knowledge/index.js";
+import { searchDocs, getDoc, listDocs, listTopics, knowledgeStats, SOURCES } from "../knowledge/index.js";
 import { ok, fail, guard, truncate } from "../utils.js";
 
 const LOCAL = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false };
@@ -10,20 +10,20 @@ export function registerDocsTools(server: McpServer) {
     "avax_search_docs",
     {
       title: "Search Avalanche documentation",
-      description: `Full-text search over the official Avalanche knowledge base (build.avax.network docs + Academy, AvalancheGo/Subnet-EVM READMEs & precompile docs, ICM/Teleporter contracts, Avalanche CLI command reference, starter kit).
+      description: `Full-text search over the official Avalanche knowledge base (build.avax.network docs, Academy, 234 integrations, blog, all ACPs, AvalancheGo/Subnet-EVM READMEs & precompile docs, ICM/Teleporter contracts, Avalanche CLI command reference, starter kit).
 
 Use this FIRST for any "how do I…", "what is…", "which precompile/config/command…" question about Avalanche, L1s/Subnets, Subnet-EVM, ICM/Teleporter/Warp, P-Chain staking, validators, Avalanche CLI, SDKs, RPC methods.
 
 Args:
   - query: natural language or keywords (e.g. "native minter precompile genesis", "convert subnet to L1", "teleporter send message fuji")
-  - source: optional filter: docs | avalanchego | icm | cli | starter-kit
+  - source: optional filter: docs | academy | integrations (234 ecosystem integrations: oracles, bridges, indexers, wallets, RPC providers…) | blog | acps (Avalanche Community Proposals) | avalanchego | icm | cli | starter-kit
   - path_prefix: optional path filter, e.g. "content/docs/avalanche-l1s", "content/academy/avalanche-l1", "graft/subnet-evm"
   - limit: max hits (default 8)
 
 Returns ranked snippets with title, heading, url and path. Call avax_get_doc with a hit's path to read the full page.`,
       inputSchema: {
         query: z.string().min(2).max(300),
-        source: z.enum(["docs", "avalanchego", "icm", "cli", "starter-kit"]).optional(),
+        source: z.enum(SOURCES).optional(),
         path_prefix: z.string().optional(),
         limit: z.number().int().min(1).max(25).default(8),
       },

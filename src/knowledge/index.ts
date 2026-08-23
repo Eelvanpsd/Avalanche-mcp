@@ -17,8 +17,26 @@ export interface SearchHit extends DocChunk {
   score: number;
 }
 
+export interface AcpMeta {
+  number: number;
+  slug: string;
+  title: string;
+  authors: string;
+  status: string;
+  track: string;
+  replaces?: string;
+  dependencies?: string;
+  discussion?: string;
+  url: string;
+  abstract: string;
+}
+
+export const SOURCES = ["docs", "academy", "integrations", "blog", "acps", "avalanchego", "icm", "cli", "starter-kit"] as const;
+export type SourceName = (typeof SOURCES)[number];
+
 let index: MiniSearch<DocChunk> | null = null;
 let chunks: Map<string, DocChunk> = new Map();
+let acps: AcpMeta[] = [];
 let builtAt = "";
 
 function dataPath(): string {
@@ -28,15 +46,16 @@ function dataPath(): string {
 
 export function loadKnowledge(): void {
   if (index) return;
-  let raw: { builtAt: string; chunks: DocChunk[] };
+  let raw: { builtAt: string; chunks: DocChunk[]; acps?: AcpMeta[] };
   try {
     raw = JSON.parse(readFileSync(dataPath(), "utf8"));
   } catch {
     // No index shipped (e.g. dev before `npm run build-index`). Start empty so the server still boots.
-    raw = { builtAt: "", chunks: [] };
+    raw = { builtAt: "", chunks: [], acps: [] };
     console.error("[avalanche-mcp] docs.json not found – run `npm run build-index`. Docs search will be empty.");
   }
   builtAt = raw.builtAt;
+  acps = raw.acps ?? [];
   chunks = new Map(raw.chunks.map((c) => [c.id, c]));
   index = new MiniSearch<DocChunk>({
     fields: ["title", "heading", "text", "path"],
@@ -56,7 +75,28 @@ export function knowledgeStats() {
   loadKnowledge();
   const bySource: Record<string, number> = {};
   for (const c of chunks.values()) bySource[c.source] = (bySource[c.source] ?? 0) + 1;
-  return { builtAt, totalChunks: chunks.size, bySource };
+  return { builtAt, totalChunks: chunks.size, acps: acps.length, bySource };
+}
+
+export function listAcps(filter: { status?: string; track?: string } = {}): AcpMeta[] {
+  loadKnowledge();
+  return acps.filter(
+    (a) =>
+      (!filter.status || a.status.toLowerCase() === filter.status.toLowerCase()) &&
+      (!filter.track || a.track.toLowerCase().includes(filter.track.toLowerCase()))
+  );
+}
+
+export function getAcp(numberOrQuery: number | string): AcpMeta | null {
+  loadKnowledge();
+  if (typeof numberOrQuery === "number") return acps.find((a) => a.number === numberOrQuery) ?? null;
+  const q = numberOrQuery.toLowerCase();
+  const m = q.match(/\b(\d{1,4})\b/);
+  if (m) {
+    const byNum = acps.find((a) => a.number === Number(m[1]));
+    if (byNum) return byNum;
+  }
+  return acps.find((a) => a.title.toLowerCase().includes(q) || a.slug.includes(q.replace(/\s+/g, "-"))) ?? null;
 }
 
 export function searchDocs(query: string, opts: { limit?: number; source?: string; pathPrefix?: string } = {}): SearchHit[] {
@@ -106,7 +146,7 @@ export function listTopics(): Array<{ topic: string; docs: number; example: stri
   const byTopic = new Map<string, Set<string>>();
   for (const c of chunks.values()) {
     const seg = c.path.split("/");
-    const topic = c.source === "docs" ? seg.slice(0, 3).join("/") : `${c.source}:${seg.slice(0, 2).join("/")}`;
+    const topic = seg[0] === "content" ? seg.slice(0, 3).join("/") : `${c.source}:${seg.slice(0, 2).join("/")}`;
     if (!byTopic.has(topic)) byTopic.set(topic, new Set());
     byTopic.get(topic)!.add(c.path);
   }

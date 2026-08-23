@@ -15,6 +15,7 @@ interface Source {
   include: RegExp;
   name: string;
   urlFor: (relPath: string) => string;
+  nameFor?: (relPath: string) => string;
 }
 
 const SOURCES: Source[] = [
@@ -22,8 +23,16 @@ const SOURCES: Source[] = [
     repo: "ava-labs/builders-hub",
     ref: "master",
     name: "docs",
-    include: /^content\/(docs|academy\/(avalanche-l1|blockchain))\/.*\.mdx?$/,
+    include: /^content\/(docs|academy\/(avalanche-l1|blockchain)|integrations|blog)\/.*\.mdx?$/,
     urlFor: (p) => "https://build.avax.network/" + p.replace(/^content\//, "").replace(/\.mdx?$/, "").replace(/\/index$/, ""),
+    nameFor: (p) => p.split("/")[1], // docs | academy | integrations | blog
+  },
+  {
+    repo: "avalanche-foundation/ACPs",
+    ref: "main",
+    name: "acps",
+    include: /^ACPs\/\d+-[^/]+\/README\.md$/,
+    urlFor: (p) => `https://build.avax.network/docs/acps/${p.split("/")[1]}`,
   },
   {
     repo: "ava-labs/avalanchego",
@@ -146,8 +155,40 @@ function chunk(text: string): Array<{ heading: string; text: string }> {
   return parts;
 }
 
+export interface AcpMeta {
+  number: number;
+  slug: string;
+  title: string;
+  authors: string;
+  status: string;
+  track: string;
+  replaces?: string;
+  dependencies?: string;
+  discussion?: string;
+  url: string;
+  abstract: string;
+}
+
+/** Parse the preamble table of an ACP README (ACP-84 format). */
+function parseAcp(rel: string, raw: string, url: string): AcpMeta | null {
+  const slug = rel.split("/")[1];
+  const number = Number(slug.split("-")[0]);
+  const cell = (label: string) => {
+    const m = raw.match(new RegExp(`^\\|\\s*(?:\\*\\*)?${label}[^|]*\\|\\s*([^|]+?)\\s*\\|`, "mi"));
+    return m ? m[1].replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").trim() : "";
+  };
+  const title = cell("Title");
+  if (!title) return null;
+  const statusRaw = raw.match(/^\|\s*(?:\*\*)?Status(?:\*\*)?[^|]*\|\s*([^|]+?)\s*\|/mi)?.[1] ?? "";
+  const discussion = statusRaw.match(/\((https:[^)]+)\)/)?.[1];
+  const status = statusRaw.split(/[(\[]/)[0].trim();
+  const abstract = (raw.split(/^## Abstract\s*$/m)[1] ?? "").split(/^## /m)[0].trim().slice(0, 600);
+  return { number, slug, title, authors: cell("Author\\(s\\)") || cell("Author"), status, track: cell("Track"), replaces: cell("Replaces") || undefined, dependencies: cell("Dependencies") || undefined, discussion, url, abstract };
+}
+
 function main() {
   const chunks: DocChunk[] = [];
+  const acps: AcpMeta[] = [];
   for (const src of SOURCES) {
     const dir = download(src);
     let files = 0;
@@ -156,18 +197,26 @@ function main() {
       if (!src.include.test(rel)) continue;
       const raw = readFileSync(file, "utf8");
       const { title, description, body } = parseFrontmatter(raw);
-      const docTitle = title ?? body.match(/^#\s+(.+)$/m)?.[1] ?? rel.split("/").pop()!.replace(/\.mdx?$/, "");
+      let docTitle = title ?? body.match(/^#\s+(.+)$/m)?.[1] ?? rel.split("/").pop()!.replace(/\.mdx?$/, "");
+      if (src.name === "acps") docTitle = raw.match(/^\|\s*(?:\*\*)?Title(?:\*\*)?[^|]*\|\s*([^|]+?)\s*\|/mi)?.[1]?.trim() ?? rel.split("/")[1];
       const cleaned = cleanMdx((description ? description + "\n\n" : "") + body);
       const url = src.urlFor(rel);
+      const sourceName = src.nameFor ? src.nameFor(rel) : src.name;
+      if (src.name === "acps") {
+        const acp = parseAcp(rel, raw, url);
+        if (acp) acps.push(acp);
+      }
       chunk(cleaned).forEach((c, i) => {
-        chunks.push({ id: `${src.name}:${rel}#${i}`, source: src.name, path: rel, url, title: docTitle, heading: c.heading, text: c.text });
+        chunks.push({ id: `${sourceName}:${rel}#${i}`, source: sourceName, path: rel, url, title: src.name === "acps" ? `ACP-${rel.split("/")[1].split("-")[0]}: ${docTitle}` : docTitle, heading: c.heading, text: c.text });
       });
       files++;
     }
     console.error(`${src.name}: ${files} files`);
   }
   mkdirSync(join(ROOT, "src", "knowledge", "data"), { recursive: true });
-  writeFileSync(OUT, JSON.stringify({ builtAt: new Date().toISOString(), chunks }));
+  acps.sort((a, b) => a.number - b.number);
+  writeFileSync(OUT, JSON.stringify({ builtAt: new Date().toISOString(), chunks, acps }));
+  console.error(`acps: ${acps.length} parsed`);
   const mb = (statSync(OUT).size / 1e6).toFixed(1);
   console.error(`✔ ${chunks.length} chunks → ${relative(ROOT, OUT)} (${mb} MB)`);
 }

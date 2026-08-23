@@ -49,6 +49,8 @@ Snowman (linear chains) / Avalanche (DAG) – sub-second finality, leaderless, r
 
 ## Key tooling
 - **Avalanche CLI** (\`avalanche blockchain create|deploy|describe|addValidator\`) – local/Fuji/mainnet L1 lifecycle.
+- **platform-cli** (\`platform subnet|chain|l1|keys|stake\`) – newer scriptable P-Chain/L1 CLI; **Builder Console** – no-code flows at build.avax.network/console.
+- **ACPs** (Avalanche Community Proposals) define protocol upgrades: Etna = ACP-77/103/118/125…, Fortuna = ACP-176, Granite/Helicon = ACP-181/194/226/283… (avax_acp_list).
 - **Avalanche SDK (JS)**, **viem/ethers**, **Foundry/Hardhat** on C-Chain & L1s.
 - **Data API (Glacier)** – indexed balances, txs, NFTs, L1 validators.
 - **Core wallet**, **Snowtrace** explorer, **subnets.avax.network** L1 explorer.
@@ -98,6 +100,10 @@ What happens: CreateSubnetTx → CreateChainTx → ConvertSubnetToL1Tx (sets Val
 - Add network to wallet: RPC from \`describe\`, chain ID, symbol.
 - Foundry: \`forge create --rpc-url <rpc> --private-key <pk> src/X.sol:X\`
 - ICM to C-Chain: see guide \`icm\`.
+
+## Alternatives to avalanche-cli
+- **Builder Console (no-code)**: https://build.avax.network/console/create-l1 → genesis, validator manager, deploy with a connected wallet; convert-to-l1, validator-manager, ICTT and faucet flows too (avax_console_flows).
+- **platform-cli (scriptable)**: \`platform subnet create\` → \`platform chain create --genesis genesis.json\` → \`platform subnet convert-to-l1 --chain-id <id> --manager <0x…> --validators <host:port>\` → \`platform l1 register-validator\`. Docs: content/docs/tooling/platform-cli. Hosted MCP \`build_plan\` (via avax_hosted_call) generates a full runbook.
 
 ## 6. Going to mainnet
 Same commands with \`--mainnet\`; use a Ledger (\`--ledger\`) for the P-Chain control keys; budget ≥ 5+ validators, monitoring (\`avalanche node status\`), and the P-Chain fee balance for each validator.
