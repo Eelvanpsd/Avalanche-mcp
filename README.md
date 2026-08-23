@@ -34,7 +34,7 @@ claude mcp add avalanche --transport http https://avalanche-mcp.dev/mcp
 | **Claude Code** | command above, or in `.mcp.json`: `{ "mcpServers": { "avalanche": { "type": "http", "url": "https://avalanche-mcp.dev/mcp" } } }` |
 | **Claude Desktop** | stdio bridge: `{ "command": "npx", "args": ["-y", "mcp-remote", "https://avalanche-mcp.dev/mcp"] }` in `claude_desktop_config.json` |
 | **Cursor / Windsurf** | `{ "mcpServers": { "avalanche": { "url": "https://avalanche-mcp.dev/mcp" } } }` |
-| **Local / offline** | `claude mcp add avalanche -- npx -y avalanche-mcp-server` (after npm publish) or from source below |
+| **Local / offline** | `claude mcp add avalanche -- npx -y avalanche-mcp-server` — [npm](https://www.npmjs.com/package/avalanche-mcp-server); or from source below |
 | **Anything** | plain JSON-RPC: `curl -X POST https://avalanche-mcp.dev/mcp -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'` |
 
 ### From source
