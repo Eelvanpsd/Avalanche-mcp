@@ -110,8 +110,24 @@ function parseFrontmatter(raw: string): { title?: string; description?: string; 
   return { title, description, body: raw.slice(m[0].length) };
 }
 
+/**
+ * Redact strings that look like live API credentials so the bundled index never
+ * trips secret scanners. Example values in docs (e.g. a BotFather tutorial) are
+ * replaced with a placeholder; deliberately public test private keys (ewoq) stay.
+ */
+const SECRET_PATTERNS: Array<[RegExp, string]> = [
+  [/\b\d{8,10}:[A-Za-z0-9_-]{30,45}\b/g, "[REDACTED_TELEGRAM_BOT_TOKEN]"],
+  [/\bsk-(?:proj-|ant-)?[A-Za-z0-9_-]{20,}\b/g, "[REDACTED_API_KEY]"],
+  [/\bgh[pousr]_[A-Za-z0-9]{36,}\b/g, "[REDACTED_GITHUB_TOKEN]"],
+  [/\bAKIA[0-9A-Z]{16}\b/g, "[REDACTED_AWS_KEY]"],
+  [/\bxox[abprs]-[A-Za-z0-9-]{10,}\b/g, "[REDACTED_SLACK_TOKEN]"],
+];
+function redactSecrets(text: string): string {
+  return SECRET_PATTERNS.reduce((t, [re, repl]) => t.replace(re, repl), text);
+}
+
 function cleanMdx(body: string): string {
-  return body
+  return redactSecrets(body)
     .replace(/^import .*$/gm, "")
     .replace(/^export .*$/gm, "")
     .replace(/<\/?[A-Z][A-Za-z]*[^>]*>/g, "")

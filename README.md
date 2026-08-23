@@ -23,40 +23,43 @@ All tools are **read-only**. Nothing signs or broadcasts transactions.
 
 ## Quick start
 
-```bash
-npm install
-npm run build-index   # downloads official sources, builds src/knowledge/data/docs.json (~7.5 MB)
-npm run build
-npm run inspect       # MCP Inspector UI
-```
-
-### Claude Code
+Installed exactly like Ava Labs' hosted MCP — a public Streamable HTTP endpoint, no key, no install:
 
 ```bash
-claude mcp add avalanche -- node /ABSOLUTE/PATH/avalanche-dev-mcp/dist/index.js
+claude mcp add avalanche --transport http https://avalanche-mcp.dev/mcp
 ```
 
-or add to `.mcp.json` in your project:
+| Client | How |
+|---|---|
+| **Claude Code** | command above, or in `.mcp.json`: `{ "mcpServers": { "avalanche": { "type": "http", "url": "https://avalanche-mcp.dev/mcp" } } }` |
+| **Claude Desktop** | stdio bridge: `{ "command": "npx", "args": ["-y", "mcp-remote", "https://avalanche-mcp.dev/mcp"] }` in `claude_desktop_config.json` |
+| **Cursor / Windsurf** | `{ "mcpServers": { "avalanche": { "url": "https://avalanche-mcp.dev/mcp" } } }` |
+| **Local / offline** | `claude mcp add avalanche -- npx -y avalanche-mcp-server` (after npm publish) or from source below |
+| **Anything** | plain JSON-RPC: `curl -X POST https://avalanche-mcp.dev/mcp -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'` |
 
-```json
-{
-  "mcpServers": {
-    "avalanche": {
-      "command": "node",
-      "args": ["/ABSOLUTE/PATH/avalanche-dev-mcp/dist/index.js"],
-      "env": { "GLACIER_API_KEY": "" }
-    }
-  }
-}
-```
+### From source
 
-### Claude Desktop / Cursor
-Same `command` / `args` block in `claude_desktop_config.json` or Cursor's MCP settings.
-
-### Remote (Streamable HTTP)
 ```bash
-PORT=3333 node dist/index.js --http     # POST http://localhost:3333/mcp
+git clone https://github.com/Eelvanpsd/Avalanche-mcp.git && cd Avalanche-mcp
+npm install && npm run build          # index ships in the repo; `npm run build-index` refreshes it
+claude mcp add avalanche -- node "$PWD/dist/index.js"
+npm run inspect                       # MCP Inspector UI
 ```
+
+### Self-host the HTTP endpoint
+
+```bash
+PORT=3333 node dist/index.js --http   # POST http://localhost:3333/mcp (stateless JSON, CORS open)
+```
+
+Or mount it in any web-standard runtime (Next.js route handler, Workers, Hono):
+
+```ts
+import { handleMcpRequest } from "avalanche-mcp-server";
+export const POST = (req: Request) => handleMcpRequest(req);
+```
+
+This is how avalanche-mcp.dev serves it ([avalanche-mcp-web](https://github.com/Eelvanpsd/avalanche-mcp-web)).
 
 ## Environment
 

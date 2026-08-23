@@ -8,6 +8,7 @@ import { registerEcosystemTools } from "./tools/ecosystem.js";
 import { registerResources } from "./resources/index.js";
 import { registerPrompts } from "./prompts/index.js";
 import { loadKnowledge } from "./knowledge/index.js";
+export { handleMcpRequest, CORS_HEADERS } from "./http.js";
 
 export const SERVER_NAME = "avalanche-mcp-server";
 export const SERVER_VERSION = "0.1.0";
