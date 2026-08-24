@@ -1,10 +1,13 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { isAddress } from "viem";
 import { glacierGet } from "../clients/glacier.js";
 import { resolveEvmChain } from "../config/networks.js";
 import { ok, guard } from "../utils.js";
 
 const READ_ONLY = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true };
+
+const addressParam = z.string().refine((a) => isAddress(a), "must be a 0x-prefixed EVM address");
 
 const chainIdParam = z
   .string()
@@ -47,7 +50,7 @@ export function registerDataApiTools(server: McpServer) {
     {
       title: "List ERC-20 balances",
       description: "List all ERC-20 token balances held by an address on a chain (Avalanche Data API). Returns token address, symbol, decimals, and balance.",
-      inputSchema: { chain_id: chainIdParam, address: z.string(), page_size: z.number().int().min(1).max(100).default(50) },
+      inputSchema: { chain_id: chainIdParam, address: addressParam, page_size: z.number().int().min(1).max(100).default(50) },
       annotations: READ_ONLY,
     },
     guard(async ({ chain_id, address, page_size }) => {
@@ -72,7 +75,7 @@ export function registerDataApiTools(server: McpServer) {
       description: "List recent transactions of an address on a chain (native + contract interactions) via Avalanche Data API. Paginated.",
       inputSchema: {
         chain_id: chainIdParam,
-        address: z.string(),
+        address: addressParam,
         page_size: z.number().int().min(1).max(100).default(25),
         page_token: z.string().optional(),
       },
@@ -104,7 +107,7 @@ export function registerDataApiTools(server: McpServer) {
     {
       title: "Get contract / token metadata",
       description: "Get metadata for a contract address (ERC-20/721/1155 type, name, symbol, decimals, deployment tx) via Avalanche Data API.",
-      inputSchema: { chain_id: chainIdParam, address: z.string() },
+      inputSchema: { chain_id: chainIdParam, address: addressParam },
       annotations: READ_ONLY,
     },
     guard(async ({ chain_id, address }) => {

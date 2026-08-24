@@ -107,6 +107,9 @@ No configuration is required. Optional environment variables (local mode):
 | `AVAX_DATA_API_KEY` | Higher rate limits for the Avalanche Data API tools. Free key at [build.avax.network](https://build.avax.network). (`GLACIER_API_KEY` is accepted as a legacy alias.) |
 | `AVAX_DATA_API_URL` | Override the Data API base URL |
 | `AVAX_HOSTED_MCP_URL` | Override the hosted Avalanche MCP endpoint used by `avax_hosted_*` |
+| `AVAX_ALLOW_CUSTOM_RPC` | `false` disables arbitrary RPC URLs in the `network` argument (built-in chains + `AVAX_RPC_ALLOWLIST` only). **Set this on any public/hosted deployment** — the default (`true`, for local use) still blocks loopback / private / link-local / metadata targets. |
+| `AVAX_RPC_ALLOWLIST` | Comma-separated extra RPC hostnames to allow when custom RPCs are disabled |
+| `AVAX_HOSTED_RATE_LIMIT` | Max `avax_hosted_call` requests per minute (default 40, under the hosted 60/min budget) |
 
 ## Self-hosting
 
@@ -150,6 +153,16 @@ REFRESH=1 npm run build-index      # re-download sources and rebuild the index
 ```
 
 Extending it is one file each: curated guides in `src/knowledge/guides.ts`, the network registry in `src/config/networks.ts`, upgrade timeline in `src/knowledge/upgrades.ts`, new sources in `scripts/build-index.ts`.
+
+## Security
+
+Every tool is read-only — the server never holds a private key, signs, or broadcasts. Additional hardening for public deployments:
+
+- **SSRF protection** — the `network` argument may be a raw RPC URL, which the server fetches. Loopback, private, link-local and cloud-metadata targets are always refused; set `AVAX_ALLOW_CUSTOM_RPC=false` to allow only built-in chains (recommended when exposing the HTTP endpoint publicly).
+- **Rate limiting** — the server throttles its own calls to Ava Labs' hosted MCP to stay under the shared 60/min budget. The HTTP endpoint itself is unauthenticated, so put a per-IP rate limiter in front (the [reference deployment](https://github.com/Eelvanpsd/avalanche-mcp-web) ships one; Upstash Ratelimit is a good managed option).
+- **Input validation** — addresses and identifiers are validated with zod/viem before any upstream request.
+
+Report vulnerabilities via a private GitHub security advisory on the repo.
 
 ## License
 

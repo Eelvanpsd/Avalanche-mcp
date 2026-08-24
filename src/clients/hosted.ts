@@ -12,7 +12,26 @@ interface RpcResult<T> {
 
 let toolCache: { at: number; tools: Array<{ name: string; description?: string; inputSchema?: unknown }> } | null = null;
 
+/**
+ * Client-side throttle so this server never blows the hosted MCP's 60 req/min
+ * budget (which is shared across everyone hitting build.avax.network). Simple
+ * sliding-window counter; refuses with an actionable error when saturated.
+ */
+const HOSTED_LIMIT = Number(process.env.AVAX_HOSTED_RATE_LIMIT ?? 40); // per minute, headroom under 60
+const hostedCalls: number[] = [];
+function reserveHostedSlot(now: number): void {
+  const cutoff = now - 60_000;
+  while (hostedCalls.length && hostedCalls[0] < cutoff) hostedCalls.shift();
+  if (hostedCalls.length >= HOSTED_LIMIT) {
+    throw new Error(
+      `Local throttle: too many hosted Avalanche MCP calls (${HOSTED_LIMIT}/min) to protect the shared 60/min budget. Use the local tools (avax_search_docs, avax_acp_*, avax_upgrade_lookup) or retry shortly.`
+    );
+  }
+  hostedCalls.push(now);
+}
+
 export async function hostedRpc<T = unknown>(method: string, params: Record<string, unknown> = {}, timeoutMs = 30_000): Promise<T> {
+  if (method === "tools/call") reserveHostedSlot(Date.now());
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {

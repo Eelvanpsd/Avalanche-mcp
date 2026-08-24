@@ -1,3 +1,4 @@
+import { assertSafeRpcUrl } from "../security.js";
 /**
  * Canonical Avalanche network registry.
  * Agents can reference networks by short name ("mainnet", "fuji") or pass a raw RPC URL.
@@ -112,15 +113,17 @@ export const ALL_EVM_CHAINS: Record<string, EvmChainInfo> = {
 /**
  * Resolve a user-supplied network identifier to an EVM chain.
  * Accepts: "mainnet" | "fuji" | known L1 key | http(s) RPC URL.
+ * Custom URLs pass through the SSRF guard (see src/security.ts).
  */
 export function resolveEvmChain(network: string): EvmChainInfo {
   const key = network.trim().toLowerCase();
   if (ALL_EVM_CHAINS[key]) return ALL_EVM_CHAINS[key];
   if (/^https?:\/\//i.test(network)) {
+    const safe = assertSafeRpcUrl(network.trim());
     return {
-      name: `Custom RPC (${network})`,
+      name: `Custom RPC (${new URL(safe).host})`,
       chainId: 0,
-      rpcUrl: network,
+      rpcUrl: safe,
       explorer: "",
       nativeSymbol: "NATIVE",
       kind: "l1",
