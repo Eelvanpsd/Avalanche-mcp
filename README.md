@@ -63,10 +63,11 @@ Other things to ask on day one:
 - *"Send a message from Fuji C-Chain to Dispatch with Teleporter, with relayer setup."*
 - *"Which ACPs are activated, and what does ACP-176 change about gas?"*
 - *"My CLI says `subnet not tracked` when I hit the RPC. What's wrong?"*
+- *"Chart C-Chain active addresses for the last 90 days, and which L1s have the most bot traffic?"*
 
 ## Capabilities
 
-**41 tools, every one read-only.** Nothing signs or broadcasts transactions.
+**45 tools, every one read-only.** Nothing signs or broadcasts transactions.
 
 | Area | Tools | What you get |
 |---|---|---|
@@ -76,6 +77,7 @@ Other things to ask on day one:
 | **Live EVM** | 8 | C-Chain, Fuji, known L1s or any RPC URL: balances, blocks, receipts, `eth_call`, gas estimation. |
 | **P-Chain · X-Chain · node** | 8 | Validators, subnets and L1s, staking economics, tx status, UTXO balances, node and network info. |
 | **Avalanche Data API** | 5 | Indexed chains, ERC-20 balances, transaction history, token metadata, L1 validators. |
+| **Network stats** | 4 | C-Chain metric time series (transactions, active addresses/senders, fees, gas, TPS, cumulative addresses/contracts/deployers), Primary Network staking history since 2020, a 30-day ranking of every Avalanche L1 with market share, concentration and estimated bot-traffic share, and an SVG chart + table renderer so stats show up as UI. Backed by [SOCI4L](https://soci4l.net/avalanche)'s public API (a daily snapshot of the Ava Labs Metrics API, P-Chain cross-checked). |
 | **Hosted federation** | 3 | Proxy to Ava Labs' official MCP for `build_plan` runbooks, CLI / RPC lookup and always-fresh search. |
 
 Plus MCP **resources** (`avax://docs/{path}`, `avax://guides/{name}`, `avax://networks`) and **prompts** (`avalanche_launch_l1`, `avalanche_deploy_contract`, `avalanche_icm_bridge`, `avalanche_learn`). The full tool list is at [avalanche-mcp.dev/#tools](https://avalanche-mcp.dev/#tools) or via `tools/list`.
@@ -95,6 +97,7 @@ The index is built by `npm run build-index` from official repositories and ships
 | `ava-labs/avalanchego` | README, `docs/`, `RELEASES`, `graft/subnet-evm` precompile and plugin docs |
 | `ava-labs/icm-services` | Teleporter / ICTT contracts, relayer, signature aggregator |
 | `ava-labs/avalanche-cli`, `ava-labs/avalanche-starter-kit` | command reference, templates |
+| [soci4l.net/api/avalanche](https://soci4l.net/avalanche) (live) | C-Chain metrics, L1 rankings, staking series — `SOCI4L_API_URL` overrides the base |
 
 `avax_list_topics` reports the index build date so the agent knows how fresh it is; `avax_fetch_live_doc` fetches the current version of any page when that matters. Credential-shaped strings in documentation examples are redacted at build time.
 
