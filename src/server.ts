@@ -10,8 +10,10 @@ import { registerPrompts } from "./prompts/index.js";
 import { loadKnowledge } from "./knowledge/index.js";
 export { handleMcpRequest, CORS_HEADERS } from "./http.js";
 
-export const SERVER_NAME = "avalanche-mcp-server";
-export const SERVER_VERSION = "0.1.0";
+import { createRequire } from "node:module";
+const pkg = createRequire(import.meta.url)("../package.json") as { name: string; version: string };
+export const SERVER_NAME = pkg.name;
+export const SERVER_VERSION = pkg.version;
 
 export function createServer(): McpServer {
   const server = new McpServer(
