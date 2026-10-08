@@ -170,3 +170,5 @@ Report vulnerabilities via a private GitHub security advisory on the repo.
 ## License
 
 MIT. Avalanche MCP is an independent, community-built project and is not affiliated with or endorsed by Ava Labs or the Avalanche Foundation. Avalanche and the Avalanche mark are trademarks of their respective owners.
+
+[![M8ven Score](https://m8ven.ai/badge/mcp/eelvanpsd-avalanche-mcp-hznmuz?v=621e5d67aae914bc98230d22eecec975)](https://m8ven.ai/mcp/eelvanpsd-avalanche-mcp-hznmuz?s=readme)
